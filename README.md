@@ -25,19 +25,16 @@ Open http://localhost:8080 in your browser. No dependencies beyond Python 3.10+.
 **HR Department**
 - **Trust in model (T_hr)**: reliance on the model score vs the human/institutional evaluation.
 - **Institutional bias (B_hr)**: penalty applied to Group B in the human evaluation component.
-- **Hiring threshold**: minimum combined score for acceptance.
-- **Hiring capacity**: fraction of applicants accepted per iteration (cap).
 
 **Platform**
 - **Learning rate (LR)**: speed at which the recommender updates its group-level exposure probabilities.
 - **Diversity regularization (D)**: pulls exposure toward 50/50 each iteration, resisting collapse.
-- **Feedback weight (FW)**: blend of user-behavior signal (FW=1) vs HR-acceptance signal (FW=0).
 
 **Simulation**
+- **Feedback weight (FW)**: blend of user-behavior signal (FW=1) vs HR-acceptance signal (FW=0).
 - **Iterations**: number of feedback cycles.
-- **Group imbalance (G)**: P(group=A). G=0.5 means equal groups.
 - **N agents**: total population size.
-- **Seed**: random seed for reproducibility.
+- **Group imbalance (G)**: P(group=A). G=0.5 means equal groups.
 
 ## Interpreting results
 
