@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simplified Agent-Based Simulation</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+  <h1>Simplified Agent-Based Simulation</h1>
+  <p>Three actors — job-seekers, HR, and a platform recommender — interact over iterations. Small structural biases compound through algorithmic feedback, producing stable inequality.</p>
+</header>
+
+<!-- ── Controls: categories as vertical columns side by side ── -->
+<div class="controls">
+  <div class="ctrl-columns">
+
+    <!-- Job-Seeker column -->
+    <div class="ctrl-col">
+      <div class="ctrl-col-title">Job-Seeker</div>
+      <div class="ctrl">
+        <label>Trust in algorithm (T_user) <span class="val" id="v-tu">0.70</span></label>
+        <input type="range" id="s-tu" min="0" max="1" step="0.05" value="0.70">
+        <div class="hint">Probability of following the platform's recommendation vs own preference.</div>
+      </div>
+      <div class="ctrl">
+        <label>Adaptation speed (A_user) <span class="val" id="v-au">0.30</span></label>
+        <input type="range" id="s-au" min="0" max="1" step="0.05" value="0.30">
+        <div class="hint">How fast internal preferences shift toward what the platform shows.</div>
+      </div>
+      <div class="ctrl">
+        <label>Risk tolerance (R_user) <span class="val" id="v-ru">0.20</span></label>
+        <input type="range" id="s-ru" min="0" max="1" step="0.05" value="0.20">
+        <div class="hint">Probability of exploring the opposite vacancy level even when trusting the algorithm.</div>
+      </div>
+    </div>
+
+    <!-- HR Department column -->
+    <div class="ctrl-col">
+      <div class="ctrl-col-title">HR Department</div>
+      <div class="ctrl">
+        <label>Trust in model (T_hr) <span class="val" id="v-thr">0.60</span></label>
+        <input type="range" id="s-thr" min="0" max="1" step="0.05" value="0.60">
+        <div class="hint">Reliance on unbiased model score vs biased human evaluation.</div>
+      </div>
+      <div class="ctrl">
+        <label>Institutional bias (B_hr) <span class="val" id="v-bhr">0.15</span></label>
+        <input type="range" id="s-bhr" min="0" max="0.5" step="0.01" value="0.15">
+      </div>
+    </div>
+
+    <!-- Platform column -->
+    <div class="ctrl-col">
+      <div class="ctrl-col-title">Platform</div>
+      <div class="ctrl">
+        <label>Learning rate (LR) <span class="val" id="v-lr">0.25</span></label>
+        <input type="range" id="s-lr" min="0" max="1" step="0.05" value="0.25">
+        <div class="hint">How fast the recommender updates its per-group exposure probabilities.</div>
+      </div>
+      <div class="ctrl">
+        <label>Diversity regularization (D) <span class="val" id="v-dr">0.10</span></label>
+        <input type="range" id="s-dr" min="0" max="1" step="0.05" value="0.10">
+        <div class="hint">Pulls exposure toward 50/50 each iteration, resisting collapse.</div>
+      </div>
+    </div>
+
+    <!-- Simulation column -->
+    <div class="ctrl-col">
+      <div class="ctrl-col-title">Simulation</div>
+      <div class="ctrl">
+        <label>Feedback weight (FW) <span class="val" id="v-fw">0.60</span></label>
+        <input type="range" id="s-fw" min="0" max="1" step="0.05" value="0.60">
+        <div class="hint">FW=1: only user clicks train the model. FW=0: only HR acceptance trains it.</div>
+      </div>
+      <div class="ctrl">
+        <label>Iterations <span class="val" id="v-it">20</span></label>
+        <input type="range" id="s-it" min="2" max="50" step="1" value="20">
+        <div class="hint">Number of feedback cycles to simulate.</div>
+      </div>
+      <div class="ctrl">
+        <label>Agents (N) <span class="val" id="v-n">200</span></label>
+        <input type="range" id="s-n" min="50" max="1000" step="50" value="200">
+        <div class="hint">Total population split into Group A and B.</div>
+      </div>
+      <div class="ctrl">
+        <label>Group imbalance (G) <span class="val" id="v-gi">0.50</span></label>
+        <input type="range" id="s-gi" min="0.1" max="0.9" step="0.05" value="0.50">
+        <div class="hint">P(group=A). 0.5 = equal groups.</div>
+      </div>
+    </div>
+
+    <!-- Run button column -->
+    <div class="ctrl-actions">
+      <button class="btn" id="btn-run">Run Simulation</button>
+      <span class="status" id="status">&nbsp;</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Charts ── -->
+<div class="charts" id="charts-area">
+  <div class="placeholder"><div class="icon">&#9881;</div><p>Adjust parameters and click <b>Run Simulation</b>.</p></div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
