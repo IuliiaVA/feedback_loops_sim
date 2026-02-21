@@ -18,7 +18,6 @@ from .simulation import SimParams, run_simulation
 
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
 _TEMPLATES = os.path.join(_APP_DIR, "templates")
-_STATIC = os.path.join(_APP_DIR, "static")
 
 MIME = {
     ".html": "text/html; charset=utf-8",
@@ -40,11 +39,6 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path == "/" or self.path == "/index.html":
             self._serve_file(os.path.join(_TEMPLATES, "index.html"), ".html")
-        elif self.path.startswith("/static/"):
-            filename = self.path[len("/static/"):]
-            filepath = os.path.join(_STATIC, filename)
-            ext = os.path.splitext(filename)[1]
-            self._serve_file(filepath, ext)
         else:
             self._send_error(404, "Not found")
 
@@ -67,14 +61,11 @@ class Handler(BaseHTTPRequestHandler):
             params = SimParams(
                 n_agents=int(data.get("n_agents", 200)),
                 group_imbalance=float(data.get("group_imbalance", 0.5)),
-                seed=int(data.get("seed", 42)),
                 t_user=float(data.get("t_user", 0.7)),
                 a_user=float(data.get("a_user", 0.3)),
                 r_user=float(data.get("r_user", 0.2)),
                 t_hr=float(data.get("t_hr", 0.6)),
                 b_hr=float(data.get("b_hr", 0.15)),
-                hiring_threshold=float(data.get("hiring_threshold", 0.45)),
-                hiring_capacity=float(data.get("hiring_capacity", 0.3)),
                 lr=float(data.get("lr", 0.25)),
                 diversity_reg=float(data.get("diversity_reg", 0.1)),
                 feedback_weight=float(data.get("feedback_weight", 0.6)),

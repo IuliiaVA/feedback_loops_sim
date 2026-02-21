@@ -26,7 +26,6 @@ from .utils import clamp, safe_div
 class Agent:
     """A single job-seeker agent."""
     group: str                 # "A" or "B"
-    skill: float               # innate competence ∈ [0,1]
     trust_in_algorithm: float  # T_user — probability of following the platform
     adaptation_speed: float    # A_user — preference drift rate
     risk_tolerance: float      # R_user — exploration probability
@@ -38,8 +37,6 @@ class HRDepartment:
     """Institutional gatekeeper."""
     trust_in_model: float      # T_hr — reliance on model score vs human eval
     institutional_bias: float  # B_hr — penalty subtracted from Group B in human eval
-    hiring_threshold: float    # θ — minimum combined score
-    hiring_capacity: float     # c — fraction of applicants that can be accepted
 
 
 @dataclass
@@ -61,7 +58,6 @@ class SimParams:
     # Population
     n_agents: int = 200
     group_imbalance: float = 0.5    # G: P(group=A)
-    seed: int = 42
 
     # Job-seeker (applied uniformly; per-agent noise comes from skill variance)
     t_user: float = 0.7
@@ -71,8 +67,6 @@ class SimParams:
     # HR
     t_hr: float = 0.6
     b_hr: float = 0.15
-    hiring_threshold: float = 0.45
-    hiring_capacity: float = 0.3
 
     # Platform
     lr: float = 0.25
@@ -94,10 +88,11 @@ def run_simulation(params: SimParams) -> dict[str, Any]:
         "iterations": list of MetricSnapshot dicts (one per iteration)
         "params":     echo of the input parameters (for the UI)
     """
-    rng = random.Random(params.seed)
+    rng = random.Random(42)
 
     # ── 1. Create agents ─────────────────────────────────────────────────
     agents: list[Agent] = []
+    skills: list[float] = []       # parallel list — skill per agent
     for _ in range(params.n_agents):
         group = "A" if rng.random() < params.group_imbalance else "B"
         skill = clamp(rng.gauss(0.5, 0.15))
@@ -105,19 +100,21 @@ def run_simulation(params: SimParams) -> dict[str, Any]:
         pref = clamp(skill + rng.gauss(0, 0.05))
         agents.append(Agent(
             group=group,
-            skill=skill,
             trust_in_algorithm=params.t_user,
             adaptation_speed=params.a_user,
             risk_tolerance=params.r_user,
             preference_for_high=pref,
         ))
+        skills.append(skill)
 
     # ── 2. Create HR and Platform ────────────────────────────────────────
+    # Internal constants (not exposed as user parameters)
+    hiring_threshold = 0.45
+    hiring_capacity = 0.3
+
     hr = HRDepartment(
         trust_in_model=params.t_hr,
         institutional_bias=params.b_hr,
-        hiring_threshold=params.hiring_threshold,
-        hiring_capacity=params.hiring_capacity,
     )
     platform = Platform(
         learning_rate=params.lr,
@@ -142,7 +139,7 @@ def run_simulation(params: SimParams) -> dict[str, Any]:
         # Per-agent scoring for HR capacity cap (collect all, then rank)
         applicant_records: list[dict] = []
 
-        for agent in agents:
+        for i, agent in enumerate(agents):
             g = agent.group
             groups.append(g)
 
@@ -174,9 +171,9 @@ def run_simulation(params: SimParams) -> dict[str, Any]:
 
             # ── STEP 3: HR evaluation ────────────────────────────────────
             #   model_score = skill (unbiased algorithmic assessment)
-            model_score = agent.skill
+            model_score = skills[i]
             #   human_score = skill - B_hr for group B (institutional bias)
-            human_score = agent.skill - (hr.institutional_bias if g == "B" else 0.0)
+            human_score = skills[i] - (hr.institutional_bias if g == "B" else 0.0)
             #   Blend: T_hr weights model, (1-T_hr) weights biased human eval
             final_score = hr.trust_in_model * model_score \
                           + (1.0 - hr.trust_in_model) * human_score
@@ -187,14 +184,14 @@ def run_simulation(params: SimParams) -> dict[str, Any]:
                 "group": g,
                 "final_score": final_score,
                 "chosen_high": chosen,
-                "meets_threshold": final_score >= hr.hiring_threshold,
+                "meets_threshold": final_score >= hiring_threshold,
             })
 
         # ── Apply hiring capacity cap (rank then accept top c fraction) ──
         eligible = [r for r in applicant_records if r["meets_threshold"]]
         # Sort by final_score descending — top candidates accepted first
         eligible.sort(key=lambda r: r["final_score"], reverse=True)
-        max_accept = max(1, int(hr.hiring_capacity * len(applicant_records)))
+        max_accept = max(1, int(hiring_capacity * len(applicant_records)))
         accepted_set: set[int] = set()
         for r in eligible[:max_accept]:
             accepted_set.add(r["idx"])
@@ -257,14 +254,11 @@ def run_simulation(params: SimParams) -> dict[str, Any]:
         "params": {
             "n_agents": params.n_agents,
             "group_imbalance": params.group_imbalance,
-            "seed": params.seed,
             "t_user": params.t_user,
             "a_user": params.a_user,
             "r_user": params.r_user,
             "t_hr": params.t_hr,
             "b_hr": params.b_hr,
-            "hiring_threshold": params.hiring_threshold,
-            "hiring_capacity": params.hiring_capacity,
             "lr": params.lr,
             "diversity_reg": params.diversity_reg,
             "feedback_weight": params.feedback_weight,

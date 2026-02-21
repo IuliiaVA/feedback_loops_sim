@@ -55,7 +55,6 @@ def compute_iteration_metrics(
 
     # --- Disparities ---
     disparity_exposure = exposure_high_A - exposure_high_B
-    disparity_accept = acceptance_rate_A - acceptance_rate_B
 
     # --- Reinforcement index = change in exposure disparity ---
     if prev_disparity_exposure is not None:
@@ -73,7 +72,6 @@ def compute_iteration_metrics(
         "diversity_entropy_A": round(diversity_entropy_A, 6),
         "diversity_entropy_B": round(diversity_entropy_B, 6),
         "disparity_exposure": round(disparity_exposure, 6),
-        "disparity_accept": round(disparity_accept, 6),
         "reinforcement_index": round(reinforcement_index, 6),
         "p_high_A": round(p_high_A, 6),
         "p_high_B": round(p_high_B, 6),
